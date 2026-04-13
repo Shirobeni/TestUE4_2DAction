@@ -80,10 +80,15 @@ void ATMMABoss7Base::CountingPatternCoundGrandBoss7()
 				PatternCountChangeMod = 90;
 				PatternCountEndCount = 450;
 				break;
+			case 4:
+				PatternCountChangeMod = 0;
+				PatternCountEndCount = 0;
 			default:
 				break;
 		}
-		CountingPatternCount(PatternCountChangeMod, PatternCountEndCount);
+		if (PatternTransform != 4) {
+			CountingPatternCount(PatternCountChangeMod, PatternCountEndCount);
+		}
 	}
 }
 
@@ -277,11 +282,11 @@ void ATMMABoss7Base::BossTransform4()
 		SpawnEnemyBullet();
 	});
 	SecondShotDelayFloat = 1.0f;
-	ShotDelayFunction(& SecondShotFloat, SecondShotDelayFloat, [this]() {
+	ShotDelayFunction(&SecondShotFloat, SecondShotDelayFloat, [this]() {
 		SpawnEnemyHomingMissile();
 	});
 	ThirdShotDelayFloat = 2.0f;
-	ShotDelayFunction(& ThirdShotFloat, ThirdShotDelayFloat, [this]() {
+	ShotDelayFunction(&ThirdShotFloat, ThirdShotDelayFloat, [this]() {
 		SpawnEnemyFire();
 	});
 }
@@ -375,10 +380,6 @@ void ATMMABoss7Base::SpawnThunderParticle() {
 			UParticleSystemComponent* ThunderParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ThunderParticle, ShotTransform);
 			if (IsValid(ThunderParticleComponent)) {
 				LaserParticleList.Add(ThunderParticleComponent);
-				FVector LaserVector = ThunderParticleComponent->GetComponentLocation();
-				// パーティクルの位置にレーザーを出すためのベクトル一覧
-				LaserVector.Z = 50.0f;
-				LaserVectorList.Add(LaserVector);
 			}
 		}
 	}
@@ -389,11 +390,14 @@ void ATMMABoss7Base::SpawnThunderLaser()
 {
 	if (!IsSpawnThunderLaserDoOnce) {
 		for (int i = 0; i < 5; i++) {
-			FTransform ShotTransform = UKismetMathLibrary::MakeTransform(LaserVectorList[i], FRotator(0.0f, 0.0f, 0.0f), FVector(0.1f, 0.1f, 4.0f));
+			if (!LaserParticleList[i]) continue;
+			FVector LaserVector = LaserParticleList[i]->GetComponentLocation();
+			LaserVector.Z = 50.0f;
+			FTransform ShotTransform = UKismetMathLibrary::MakeTransform(LaserVector, FRotator(0.0f, 0.0f, 0.0f), FVector(0.1f, 0.1f, 4.0f));
 			GetWorld()->SpawnActor<AActor>(ShotEnemyBulletList[6], ShotTransform);
-			LaserVectorList.Remove(LaserVectorList[i]);
 			LaserParticleList[i]->DestroyComponent();
 		}
+		LaserParticleList.Reset();
 		IsSpawnThunderLaserDoOnce = true;
 	}
 }

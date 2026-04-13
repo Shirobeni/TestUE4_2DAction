@@ -14,20 +14,23 @@ void ATMMABoss6AiBase::BeginPlay()
 		DestinationPointActorListPt1 = Boss6->DestinationPointActorListPt1;
 		DestinationPointActorListPt2 = Boss6->DestinationPointActorListPt2;
 		SetDestinationVector();
-		DelicadeTime = 2.5f;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6AiBase::MovePatroll, DelicadeTime, true);
+		DelicadeTime = 10.0f;
+//		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6AiBase::MovePatroll, DelicadeTime, true);
 	}
 }
 
 void ATMMABoss6AiBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (!MainGameMode->GetIsBossBattle()) return;
 	if (Boss6->GetEnemyHp() <= 7000 && IsTransformDoOnceFlag == false) {
-		DelicadeTime = 4.0f;
+		IsArrivedPoint = false; // 第一形態の攻撃を中断させ、移動状態にする.
+		DelicadeTime = 20.0f;
+		DestinationIndex = 0;
 		IsTransformDoOnceFlag = true;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6AiBase::InitDestinationIndexForDelay, 1.0, false);
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6AiBase::MovePatroll, DelicadeTime, true);
 	}
+	MovePatroll();
+	AddAttackintTime();
 }
 
 void ATMMABoss6AiBase::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
@@ -57,12 +60,14 @@ void ATMMABoss6AiBase::PopDestinationLocation()
 void ATMMABoss6AiBase::MovePatroll()
 {
 	if (IsArrivedPoint) return;
-	UTMMAActorLibrary::MoveActorToTarget(Boss6, TargetDestinationPointActor, 10.0f);
+	AccelerationValue += 0.2f;
+	UTMMAActorLibrary::MoveActorToTarget(Boss6, TargetDestinationPointActor, (10.0f + AccelerationValue));
 	if (FVector::Dist(Boss6->GetActorLocation(), TargetDestinationPointActor->GetActorLocation()) < 10.0f) {
 		Boss6->SetActorLocation(TargetDestinationPointActor->GetActorLocation());
 		PopDestinationLocation();
 		SetDestinationVector();
 		IsArrivedPoint = true;
+		AccelerationValue = 0.0f;
 	}
 //	EPathFollowingRequestResult::Type MovePathModeResult = MoveToLocation(DestinationVector);
 }
@@ -74,6 +79,7 @@ void ATMMABoss6AiBase::AddAttackintTime()
 	// 攻撃時間がデリケードタイム以上になったら、移動モードにして中断.
 	if (AttackingTime >= DelicadeTime) {
 		IsArrivedPoint = false;
+		AttackingTime = 0.0f;
 	}
 }
 

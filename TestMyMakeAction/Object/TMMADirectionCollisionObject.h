@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "TMMAObjectBase.h"
 #include "TestMyMakeAction/TestMyMakeActionGameModeBase.h"
+#include "TestMyMakeAction/Widget/TMMADirectionWidget.h"
 #include "TMMADirectionCollisionObject.generated.h"
 
 /**

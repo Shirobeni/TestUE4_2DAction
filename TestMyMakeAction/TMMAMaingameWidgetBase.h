@@ -10,6 +10,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "GameState/TMMAGameStateBase.h"
+#include "TMMAGameInstanceBase.h"
 #include "TMMAPlayerLeftWidgetBase.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Widget/TMMADirectionWidget.h"
@@ -39,7 +40,7 @@ public:
 	void UpdateBurstCount(int InBurstCount);
 
 	UFUNCTION(BlueprintCallable)
-	void SetStageAndStageTitleText(int CurrentStageNum);
+	void SetStageAndStageTitleText(int CurrentStageNum, EBuildMode InBuildMode);
 
 	UFUNCTION(BlueprintCallable)
 	void AddStageTitleViewTime();
@@ -52,6 +53,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetDirectionWidgetByIsLeftSide(bool InIsDirectionLeftSide);
+
 
 private:
 	UFUNCTION()

@@ -25,6 +25,7 @@ void ATMMAActionPlayerBase::ShotFunction()
 			if (IsAbleSwordAttack && !SwordAttackSwitch) {
 				FTransform Transform = UKismetMathLibrary::MakeTransform(GetActorLocation(), FRotator(0.0f, 0.0f, 0.0f), FVector(1.0f, 1.0f, 1.0f));
 				 GetWorld()->SpawnActor<AActor>(SwordClass, Transform);
+				 PlayAnimMontageByAnimType(EPlayerAnimType::Sword, 0.5f);
 				 SwordAttackSwitch = true;
 				 // ソードの生成間隔をあけるための処理
 				 ShotButtonPussingTime += 0.1f;
@@ -36,6 +37,9 @@ void ATMMAActionPlayerBase::ShotFunction()
 				Shot(ShotAxisLeftRight, ShotAxisUpDown);
 				if(IsMissileOfAction) {
 					GetWorld()->GetTimerManager().SetTimer(Handle, this, &ATMMAActionPlayerBase::MissileShotFunc, 0.4f, false);
+				}
+				if (!bWasJumping && (GetVelocity().Y == 0 && GetVelocity().Z == 0)) {
+					PlayAnimMontageByAnimType(EPlayerAnimType::Shot, 1.0f);
 				}
 			}
 		}

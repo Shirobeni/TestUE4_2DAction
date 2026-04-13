@@ -47,6 +47,12 @@ public:
 	// Sets default values for this character's properties
 	ATMMAEnemyBase();
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	// 現在の形態パターンを取得
 	UFUNCTION(BlueprintPure)
 	const int GetPatternTransform() const {
@@ -606,9 +612,9 @@ protected:
 	float TimerEventFlame = 0.016f;
 
 	// パターン用カウント(通常ショットに使用する)
-	int PatternCountChangeMod = 5;
+	int PatternCountChangeMod = 0;
 
-	int PatternCountEndCount = 10;
+	int PatternCountEndCount = 0;
 
 
 	// データアセット
@@ -625,18 +631,10 @@ protected:
 
 	TArray<UMaterial*> SkeltalMaterialArray;
 
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-private:
 	// ゲームステート関連
 	ATMMAGameStateBase* MainGameState;
 
+private:
 	FTimerHandle TimerEventHandle;
 
 };

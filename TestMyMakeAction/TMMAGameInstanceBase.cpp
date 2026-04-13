@@ -23,31 +23,15 @@ void UTMMAGameInstanceBase::InitGameStatus() {
 	IsRankIn = false;
 }
 
-void UTMMAGameInstanceBase::StageClearGameStatus(ATestMyMakeActionGameModeBase* InGameMode, ATMMAPlayerBase* InPlayer)
-{
-	// TODO::•K—v‚È‚¯‚ê‚Î”pŽ~—\’è.
-	Set1PScore(InGameMode->GetP1Score());
-	SetP1Left(InGameMode->GetPlayer1Left());
-	SetHighScore(InGameMode->GetHighScore());
-	SetGameRank(InGameMode->GetGameRank());
-//	SetStageBgmComponent(StageBgmComponent);
-	SetP1ExtendCount(InGameMode->GetP1ExtendCount());
-	SetP1NextExtendScore(InGameMode->GetP1NextExtendScore());
-	SetP1Life(InPlayer->GetPlayerLife());
-	SetP1PowerLevel(InPlayer->GetShotLevel());
-	SetP1ShotType(InPlayer->GetShotType());
-	SetP1LeftBurst(InPlayer->GetBurstCount());
-}
-
 void UTMMAGameInstanceBase::StageClearGameStatusAndPlayerStatus(ATMMAGameStateBase* InGameStatus, ATMMAPlayerBase* InPlayer)
 {
-	Set1PScore(InGameStatus->GetP1Score());
-	SetP1Left(InGameStatus->GetLeft());
+	Set1PScore(InGameStatus->GetP1PlayerState()->GetScore());
+	SetP1Left(InGameStatus->GetP1PlayerState()->GetLeft());
 	UE_LOG(LogTemp, Log, TEXT("left in instance:%d"), Player1Left);
 	SetHighScore(InGameStatus->GetHighScore());
 	SetGameRank(InGameStatus->GetGameRank());
-	SetP1ExtendCount(InGameStatus->GetExtendCount());
-	SetP1NextExtendScore(InGameStatus->GetNextExtendScore());
+	SetP1ExtendCount(InGameStatus->GetP1PlayerState()->GetExtendCount());
+	SetP1NextExtendScore(InGameStatus->GetP1PlayerState()->GetNextExtendScore());
 	UE_LOG(LogTemp, Log, TEXT("next extend score by instance:%d"), InGameStatus->GetNextExtendScore());
 	UE_LOG(LogTemp, Log, TEXT("next extend score instance:%d"), P1NextExtendScore);
 	SetP1Life(InPlayer->GetPlayerLife());
@@ -85,11 +69,6 @@ void UTMMAGameInstanceBase::Set1PScore(int P1Score)
 void UTMMAGameInstanceBase::SetHighScore(int InHighScore)
 {
 	GameHighScore = InHighScore;
-}
-
-void UTMMAGameInstanceBase::SetGameMode(ATestMyMakeActionGameModeBase* InGameMode)
-{
-	GameMode = InGameMode;
 }
 
 void UTMMAGameInstanceBase::SetP1Left(int InP1Left)

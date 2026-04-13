@@ -4,6 +4,7 @@
 #include "TestMyMakeActionGameModeBase.h"
 #include "TestMyMakeAction/Controller/TMMAPlayerController.h"
 #include "TMMALockCollisionBase.h"
+#include "TMMAMaingameWidgetBase.h"
 #include "Object/TMMACustomWorldSettings.h"
 #include "TMMALockCollisionBase.h"
 
@@ -29,8 +30,8 @@ void ATestMyMakeActionGameModeBase::BeginPlay()
 	// ゲームステートとプレイヤーステートの取得
 	AGameStateBase* GameStateBase = GetGameState<AGameStateBase>();
 	if (GameStateBase == nullptr || !IsValid(GameStateBase)) return;
-	if (ATMMAGameStateBase* CastedGameModeBase = Cast<ATMMAGameStateBase>(GameStateBase)) {
-		MainGameState = CastedGameModeBase;
+	if (ATMMAGameStateBase* CastedGameStateBase = Cast<ATMMAGameStateBase>(GameStateBase)) {
+		MainGameState = CastedGameStateBase;
 		MainGameState->SetP1PlayerState();
 	}
 	// ウィジェット
@@ -44,11 +45,14 @@ void ATestMyMakeActionGameModeBase::BeginPlay()
 		ControllPlayer = CastedPlayerPawn;
 	}
 	// コントローラー
-	APlayerController* aPlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (aPlayerController == nullptr || !IsValid(aPlayerController)) return;
-	if (ATMMAPlayerController* CastedPlayerController = Cast<ATMMAPlayerController>(aPlayerController)) {
-		CastedPlayerController->SetControllPawn(ControllPlayer);
-	}
+	// プレイヤーステート側にて設定.
+	if (!MainGameState->GetP1PlayerState()) return;
+	MainGameState->GetP1PlayerState()->SetControllerByCast();
+	ATMMAPlayerController* MainPlayerController = MainGameState->GetP1PlayerState()->GetMainPlayerController();
+	if (!MainPlayerController) return;
+	MainPlayerController->SetControllPawn(ControllPlayer);
+	// ウィジェット
+	MainPlayerController->CreateMainGameWidget();
 	// カメラ設定
 	SetPlayerCamerBySoftClass();
 	IsClear = false;
@@ -69,53 +73,6 @@ void ATestMyMakeActionGameModeBase::InitializeStage(ECurrentStageEnum InCurrentS
 {
 	MainGameState->SetMainGameInstance(MainGameInstance);
 	MainGameState->TakeOverStatusToStage(ControllPlayer, InCurrentStageEnum);
-	if (IsValid(MainGameWidget) == true) {
-		MainGameWidget->SetStageAndStageTitleText(MainGameState->GetCurrentStageNum());
-		MainGameWidget->UpdateLeft(MainGameState->GetP1PlayerState()->GetLeft());
-		UpdateHighScoreAndText();
-	}
-}
-
-// TODO::別の方法が見つかったので、いずれ廃止するかも.
-void ATestMyMakeActionGameModeBase::InitializeStageLevel(ECurrentStage InCurrentStage, UTMMAGameInstanceBase* InGameInstance)
-{
-	if (MainGameState != nullptr) {
-		ECurrentStageEnum CurrentStageByState = ECurrentStageEnum::Stage1;
-			// enumのコンバート
-		switch (InCurrentStage)
-		{
-			case ECurrentStage::Stage2:
-				CurrentStageByState = ECurrentStageEnum::Stage2;
-				break;
-			case ECurrentStage::Stage3:
-				CurrentStageByState = ECurrentStageEnum::Stage3;
-				break;
-			case ECurrentStage::Stage4:
-				CurrentStageByState = ECurrentStageEnum::Stage4;
-				break;
-			case ECurrentStage::Stage5:
-				CurrentStageByState = ECurrentStageEnum::Stage5;
-				break;
-			case ECurrentStage::Stage6:
-				CurrentStageByState = ECurrentStageEnum::Stage6;
-				break;
-			case ECurrentStage::Stage7:
-				CurrentStageByState = ECurrentStageEnum::Stage7;
-				break;
-			default:
-				break;
-		};
-		MainGameState->SetMainGameInstance(InGameInstance);
-		MainGameState->TakeOverStatusToStage(ControllPlayer, CurrentStageByState);
-		SetCurrentStage(InCurrentStage);
-		int CurrentStageNo = 0;
-		ConvertCurrentStageToInt(CurrentStageNo);
-		if (IsValid(MainGameWidget) == true) {
-			MainGameWidget->SetStageAndStageTitleText(MainGameState->GetCurrentStageNum());
-			MainGameWidget->UpdateLeft(MainGameState->GetLeft());
-			UpdateHighScoreAndText();
-		}
-	}
 }
 
 void ATestMyMakeActionGameModeBase::SetWidgetBySubclass() 
@@ -143,71 +100,6 @@ void ATestMyMakeActionGameModeBase::InitializeGameRank()
 	GameRank = 0;
 }
 
-// TODO::スコア関連はゲームステート及びプレイヤーステートへ完全移行したので、後々削除
-// ----------------------------------------------------------------------------------
-void ATestMyMakeActionGameModeBase::SetP1Score(int InP1Score)
-{
-	Player1Score = InP1Score;
-}
-
-void ATestMyMakeActionGameModeBase::AddP1Score(int AddScore)
-{
-	Player1Score += AddScore;
-	UpdateHighScore();
-}
-
-void ATestMyMakeActionGameModeBase::AddP1ScoreAndText(int AddScore)
-{
-	if (MainGameWidget != nullptr) {
-		AddP1Score(AddScore);
-//		MainGameWidget->Player1ScoreText->SetText(FText::FromString(FString::FromInt(Player1Score)));
-	}
-}
-
-void ATestMyMakeActionGameModeBase::AddP1ScoreAndTextByTime(int AddBaseScore, bool IsDiff, int InDiffParam)
-{
-	int AddScore = 0;
-	if (IsDiff == true && InDiffParam > 0) {
-		AddScore =AddBaseScore * floor(LeftStageTime / InDiffParam);
-	} else {
-		AddScore = AddBaseScore * floor(LeftStageTime);
-	}
-	AddP1ScoreAndText(AddScore);
-}
-
-void ATestMyMakeActionGameModeBase::InitHighScore() {
-	HighScore = 80000;
-}
-
-void ATestMyMakeActionGameModeBase::UpdateHighScore() {
-	if (Player1Score > HighScore) {
-		HighScore = Player1Score;
-	}
-}
-
-void ATestMyMakeActionGameModeBase::UpdateHighScoreAndText()
-{
-	UpdateHighScore();
-	if (MainGameWidget != nullptr) {
-//		MainGameWidget->HighScoreText->SetText(FText::FromString(FString::FromInt(HighScore)));
-	}
-}
-
-void ATestMyMakeActionGameModeBase::UpdatePlayer1Left(int AddP1Left)
-{
-	Player1Left += AddP1Left;
-}
-
-void ATestMyMakeActionGameModeBase::CheckAndUpdatePlayer1LeftAndIcon()
-{
-	bool IsExtend = false;
-	ExtendPlayer1(Player1Score, IsExtend);
-	if ((IsExtend == true) && (MainGameWidget != nullptr)) {
-//		MainGameWidget->UpdateLeft(Player1Left);
-	}
-}
-//-----------------------------------------------------------------------------------
-
 void ATestMyMakeActionGameModeBase::SetMainGameWidget(UTMMAMaingameWidgetBase* InMainGameWidget)
 {
 	MainGameWidget = InMainGameWidget;
@@ -218,7 +110,6 @@ void ATestMyMakeActionGameModeBase::TakeStageClear()
 	if (MainGameState != nullptr) {
 		MainGameState->TakeStageClear();
 	}
-	AddScoreByTimeAndCheckHiScAndExtend(20000, false, 0);
 	UpdateGameRank(1);
 	if (IsValid(ControllPlayer) == true) {
 		ControllPlayer->StageClearLifeRegain(30);
@@ -227,7 +118,6 @@ void ATestMyMakeActionGameModeBase::TakeStageClear()
 			if (MainGameState != nullptr) {
 				MainGameInstance->StageClearGameStatusAndPlayerStatus(MainGameState, ControllPlayer);
 			}
-//			MainGameInstance->StageClearGameStatus(this, ControllPlayer);
 			if (StageBgmComponent != nullptr) {
 				MainGameInstance->SetStageBgmComponent(StageBgmComponent);
 			}
@@ -272,33 +162,6 @@ void ATestMyMakeActionGameModeBase::LoadNextLevel()
 			StageName = FName(TEXT("AllClear"));
 			break;
 	}
-	/* TODO:: 廃止予定
-	switch (CurrentStage) {
-	case ECurrentStage::Stage1:
-		StageName = FName(TEXT("stage2"));
-		break;
-	case ECurrentStage::Stage2:
-		StageName = FName(TEXT("stage3"));
-		break;
-	case ECurrentStage::Stage3:
-		StageName = FName(TEXT("stage4"));
-		break;
-	case ECurrentStage::Stage4:
-		StageName = FName(TEXT("stage5"));
-		break;
-	case ECurrentStage::Stage5:
-		StageName = FName(TEXT("stage6"));
-		break;
-	case ECurrentStage::Stage6:
-		StageName = FName(TEXT("stage7"));
-		break;
-	case ECurrentStage::Stage7:
-		StageName = "AllClear";
-		break;
-	default:
-		break;
-	}
-	*/
 	if (StageName != FName(TEXT(""))) {
 		FLatentActionInfo LatentInfo;
 		UGameplayStatics::LoadStreamLevel(GetWorld(), StageName, false, true, LatentInfo);
@@ -312,9 +175,6 @@ void ATestMyMakeActionGameModeBase::ExecuteOpenNextLevel()
 	if (MainGameState->GetCurrentStage() == ECurrentStageEnum::Stage7) {
 		DelayTime = 10.0;
 	}
-//	if (CurrentStage == ECurrentStage::Stage7) {
-//		DelayTime = 10.0;
-//	}
 	FTimerHandle _TimerHandle;
 	GetWorldTimerManager().SetTimer(_TimerHandle, this, &ATestMyMakeActionGameModeBase::OpenNextLevel, DelayTime, false);
 }
@@ -346,71 +206,11 @@ void ATestMyMakeActionGameModeBase::OpenNextLevel()
 			break;
 	}
 
-	/*
-	switch (CurrentStage) {
-		case ECurrentStage::Stage1:
-			StageName = "stage2";
-			break;
-		case ECurrentStage::Stage2:
-			StageName = "stage3";
-			break;
-		case ECurrentStage::Stage3:
-			StageName = "stage4";
-			break;
-		case ECurrentStage::Stage4:
-			StageName = "stage5";
-			break;
-		case ECurrentStage::Stage5:
-			StageName = "stage6";
-			break;
-		case ECurrentStage::Stage6:
-			StageName = "stage7";
-			break;
-		case ECurrentStage::Stage7:
-			StageName = "AllClear";
-			break;
-		default:
-			break;
-	}
-	*/
 	if (StageName != "") {
 		UGameplayStatics::OpenLevel(GetWorld(), FName(StageName));
 	}
 }
 
-// TODO::スコア関連はゲームステート及びプレイヤーステートへ完全移行したので、後々削除
-// ----------------------------------------------------------------------------------
-void ATestMyMakeActionGameModeBase::TakeOverStatusToStage(UTMMAGameInstanceBase* InGameInstance, ATMMAPlayerBase* InPlayerActor, ECurrentStage InCurrentStage)
-{
-	SetP1Score(InGameInstance->Get1PScore());
-	SetGameRank(InGameInstance->GetGameRank());
-	SetP1ExtendCount(InGameInstance->GetP1ExtendCount());
-	SetP1NextExtendScore(InGameInstance->GetP1NextExtendScore());
-	Player1Left = InGameInstance->GetP1Left();
-	if (InPlayerActor != nullptr) {
-		InPlayerActor->SetShotLevel(InGameInstance->GetP1PowerLevel());
-	}
-	SetIsLockTimer(false);
-	SetCurrentStage(InCurrentStage);
-	int CurrentStageNo = 0;
-	ConvertCurrentStageToInt(CurrentStageNo);
-	InGameInstance->SetCurrentStage(CurrentStageNo);
-}
-
-void ATestMyMakeActionGameModeBase::AddScoreAndCheckHiScAndExtend(int InScore)
-{
-	AddP1ScoreAndText(InScore);
-	UpdateHighScoreAndText();
-	CheckAndUpdatePlayer1LeftAndIcon();
-}
-
-void ATestMyMakeActionGameModeBase::AddScoreByTimeAndCheckHiScAndExtend(int InBaseScore, bool IsDiff, int InDiffParam)
-{
-	AddP1ScoreAndTextByTime(InBaseScore, IsDiff, InDiffParam);
-	UpdateHighScoreAndText();
-	CheckAndUpdatePlayer1LeftAndIcon();
-}
-// ----------------------------------------------------------------------------------
 
 // ミス発生イベント
 void ATestMyMakeActionGameModeBase::PlayerMiss(EPlayerMissType InPlayerMissType)
@@ -431,10 +231,7 @@ void ATestMyMakeActionGameModeBase::PlayerMiss(EPlayerMissType InPlayerMissType)
 	MainGameState->SetTimeLockFlag(true);
 	FTimerHandle handle;
 	GetWorld()->GetTimerManager().SetTimer(handle, this, &ATestMyMakeActionGameModeBase::TimerMissFunc, 1.0f, false);
-	
-//	FTimerManager& TimerManager = GetWorldTimerManager();
-//	TimerManager.SetTimer(handle, &ATestMyMakeActionGameModeBase::TimerMissFunc, 1.0f, false);
-}
+	}
 
 void ATestMyMakeActionGameModeBase::TimerMissFunc()
 {
@@ -459,7 +256,7 @@ void ATestMyMakeActionGameModeBase::SequenceAfterMiss()
 		}
 	}
 	else {
-		MainGameInstance->Set1PScore(MainGameState->GetP1Score());
+		MainGameInstance->Set1PScore(MainGameState->GetP1PlayerState()->GetScore());
 		MainGameInstance->SavePlayerStatus();
 		MainGameInstance->CheckRankIn();
 		if (IsValid(ContinueWidget) == true) {
@@ -476,11 +273,6 @@ void ATestMyMakeActionGameModeBase::SequenceAfterMiss()
 void ATestMyMakeActionGameModeBase::ViewContinueScreen(APlayerController* PlayerController)
 {
 	if (IsValid(WidgetControllPawn) == true) {
-		// コンティニューウィジェットのデータを再度読み込み (データ自体がnullか無効値だった場合)
-//		if (IsValid(ContinueWidget) == false) {
-//			TSubclassOf<UContinueWidget> ContinueWidgetClass = ContinueWidgetSoftClass.LoadSynchronous();
-//			ContinueWidget = CreateWidget<UContinueWidget>(GetWorld(), ContinueWidgetClass);
-//		}
 		ContinueWidget->AddToViewport();
 		ContinueWidget->GetItemList()->SelectedButtonByRowColumn(0, 0, PlayerController);
 		WidgetControllPawn->SetControllWidget(ContinueWidget);
@@ -533,15 +325,6 @@ void ATestMyMakeActionGameModeBase::RestartPlayerAndCamera()
 	MainGameState->SetTimeLockFlag(false);
 }
 
-//void  ATestMyMakeActionGameModeBase::convertToScoreForLeftAndBurst(int InLeft, int InBurst)
-//{
-//	if (InLeft >= 1) {
-//		for (int i = 0; i < InLeft; i++) {
-//			FTimerHandle TimerHandle;
-//			GetWorldTimerManager().SetTimer(TimerHandle, this, &ATestMyMakeActionGameModeBase::AddP1Score(3000000),0.2f, false);
-//		}
-//	}
-//}
 
 //　タイムアップしたらtrueを返す.
 bool ATestMyMakeActionGameModeBase::UpDateStageTime(float DeltaSeconds) {
@@ -588,29 +371,6 @@ void ATestMyMakeActionGameModeBase::AddStageTime(float AddTime)
 void ATestMyMakeActionGameModeBase::SetIsLockTimer(bool InIsLockTimer) 
 {
 	IsLockTimer = InIsLockTimer;
-}
-
-
-void ATestMyMakeActionGameModeBase::ExtendPlayer1(int InScore, bool& IsExtend)
-{
-	bool IsExtendFlag = false;
-	if ( Player1Score >= P1NextExtendScore) {
-		UpdatePlayer1Left(1);
-		P1ExtendCount += 1;
-		SetP1NextExtendScore(P1ExtendCount * 20000000);
-		IsExtendFlag = true;
-	}
-	IsExtend = IsExtendFlag;
-}
-
-void ATestMyMakeActionGameModeBase::SetP1ExtendCount(int InP1ExtendCount)
-{
-	P1ExtendCount = InP1ExtendCount;
-}
-
-void ATestMyMakeActionGameModeBase::SetP1NextExtendScore(int InExtendScore)
-{
-	P1NextExtendScore = InExtendScore;
 }
 
 void ATestMyMakeActionGameModeBase::UpdateGameRank(int AddRank)
@@ -926,6 +686,33 @@ void ATestMyMakeActionGameModeBase::SetIsDirectLeftSide(bool InIsDirectLeftSide)
 
 void ATestMyMakeActionGameModeBase::ViewNavigation()
 {
+	if (!MainGameState->GetP1PlayerState()->GetMainPlayerController()->GetMainGameWidget() || !MainGameState->GetP1PlayerState()->GetMainPlayerController()->GetMainGameWidget()->DirectionWidget) return;
+	UTMMADirectionWidget* DirectionWidget = MainGameState->GetP1PlayerState()->GetMainPlayerController()->GetMainGameWidget()->DirectionWidget;
+	DirectionWidget->SetVisibility(ESlateVisibility::Visible);
+	DirectionWidget->SetIsView(true);
+	switch (NavigationDirect)
+	{
+	case ENavigationDirect::Left:
+		DirectionWidget->SetDirectionTypeAndText(EDirectionType::Left);
+		break;
+	case ENavigationDirect::Up:
+		DirectionWidget->SetDirectionTypeAndText(EDirectionType::Up);
+		break;
+
+	case ENavigationDirect::Down:
+		DirectionWidget->SetDirectionTypeAndText(EDirectionType::Down);
+		break;
+	default:
+		DirectionWidget->SetDirectionTypeAndText(EDirectionType::Right);
+		break;
+	}
+	FVector2D Translation = FVector2D(1140.0f, 140.0f);
+	if (IsDirectLeftSide == true) {
+		Translation = (FVector2D(200.0f, 128.0f));
+	}
+	MainGameState->GetP1PlayerState()->GetMainPlayerController()->GetMainGameWidget()->SetDirectionWidgetByIsLeftSide(IsDirectLeftSide);
+
+	/*
 	if (MainGameWidget != nullptr && MainGameWidget->DirectionWidget != nullptr) {
 		UTMMADirectionWidget* DirectionWidget = MainGameWidget->DirectionWidget;
 		DirectionWidget->SetVisibility(ESlateVisibility::Visible);
@@ -953,6 +740,7 @@ void ATestMyMakeActionGameModeBase::ViewNavigation()
 		MainGameWidget->SetDirectionWidgetByIsLeftSide(IsDirectLeftSide);
 
 	}
+	*/
 }
 
 // コンティニューウィジェット設定

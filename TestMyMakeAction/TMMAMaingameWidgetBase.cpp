@@ -57,37 +57,71 @@ void UTMMAMaingameWidgetBase::UpdateBurstCount(int InBurstCount)
 	}
 }
 
-void UTMMAMaingameWidgetBase::SetStageAndStageTitleText(int CurrentStageNum)
+void UTMMAMaingameWidgetBase::SetStageAndStageTitleText(int CurrentStageNum, EBuildMode InBuildMode)
 {
-	FString StageName = FString::Printf(TEXT("AREA%d"),CurrentStageNum)
-		;
+	FString StageName = FString::Printf(TEXT("AREA%d"),CurrentStageNum);
 	FString StageSubTitle = "";
-/*	switch (CurrentStageNum) {
-	case 1:
-		StageSubTitle = "RUNAWAY";
-		break;
-	case 2:
-		StageSubTitle = "THUNDERSTRUCK";
-		break;
-	case 3:
-		StageSubTitle = "ARE YOU GONNA GO MY WAY";
-		break;
-	case 4:
-		StageSubTitle = "I WANT OUT";
-		break;
-	case 5:
-		StageSubTitle ="ROCKET RIDE";
-		break;
-	case 6:
-		StageSubTitle = "KILLING IN THE NAME";
-		break;
-	case 7:
-		StageSubTitle = "BREAKING THE LAW";
-		break;
-	default:
-		break;
+	// ƒrƒ‹ƒhó‘Ô‚É‚æ‚Á‚Äs‚¤.
+	switch (InBuildMode) {
+		default:
+			break;
+		case EBuildMode::Release:
+		case EBuildMode::Development:
+			switch (CurrentStageNum) {
+				case 1:
+					StageSubTitle = "RUNAWAY";
+					break;
+				case 2:
+					StageSubTitle = "BREAKING THE LAW";
+					break;
+				case 3:
+					StageSubTitle = "ARE YOU GONNA GO MY WAY";
+					break;
+				case 4:
+					StageSubTitle = "I WANT OUT";
+					break;
+				case 5:
+					StageSubTitle = "ROCKET RIDE";
+					break;
+				case 6:
+					StageSubTitle = "BAD MEDICINE";
+					break;
+				case 7:
+					StageSubTitle = "KILLING IN THE NAME";
+					break;
+				default:
+					break;
+			}
+			break;
+		case EBuildMode::SNS:
+			switch (CurrentStageNum) {
+			case 1:
+				StageSubTitle = "RUNAWAY AND ASSAULT";
+				break;
+			case 2:
+				StageSubTitle = "REVELOIN TO FREE";
+				break;
+			case 3:
+				StageSubTitle = "RAILLOAD OF RAID";
+				break;
+			case 4:
+				StageSubTitle = "BROKEN PURE HEARTS";
+				break;
+			case 5:
+				StageSubTitle = "RIDE TO DEATHWIND";
+				break;
+			case 6:
+				StageSubTitle = "WEALTN OF MADNESS MEDICINE";
+				break;
+			case 7:
+				StageSubTitle = "RUIN OF AUTHORITIES";
+				break;
+			default:
+				break;
+			}
+			break;
 	}
-	*/
+	
 	if (StageText != nullptr) {
 		StageText->SetText(FText::FromString(StageName));
 	}

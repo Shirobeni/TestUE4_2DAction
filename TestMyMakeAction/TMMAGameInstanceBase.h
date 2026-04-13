@@ -22,8 +22,17 @@ UENUM(BlueprintType)
 enum class EBuildMode : uint8
 {
 	Development UMETA(DisplayName = "Development"), // 開発用
-	Release UMETA(DisplayName = "Release"),
-	Portfolio UMETA(DisplayName = "Portfolio"),
+	Release UMETA(DisplayName = "Release"), // 製品用
+	Portfolio UMETA(DisplayName = "Portfolio"), // ポートフォリオ用
+	SNS UMETA (DisplayName = "SNS") // SNS上での投稿用 (Xなどで途中報告するときとか.)
+};
+
+// 言語モード
+UENUM(BlueprintType)
+enum class ELanguageMode : uint8
+{
+	Japanese UMETA(DisplayName="Japanese"),
+	English UMETA(DisplayName="English")
 };
 
 // ランキング用プレイヤーステータス
@@ -84,11 +93,8 @@ public:
 	UPROPERTY()
 	int P1ExtendCount = 0;
 
-	int P1NextExtendScore = 5000000;
-
 	UPROPERTY()
-	ATestMyMakeActionGameModeBase* GameMode;
-
+	int P1NextExtendScore = 5000000;
 
 	UPROPERTY()
 	EShotType P1ShotType = EShotType::Rapid;
@@ -114,7 +120,11 @@ public:
 
 	// ビルドモード
 	UPROPERTY(EditAnywhere)
-		EBuildMode BuildMode = EBuildMode::Development;
+	EBuildMode BuildMode = EBuildMode::Development;
+
+	// 言語設定(※後々メニュー経由で設定できるようにしておく)
+	UPROPERTY()
+	ELanguageMode LanguageMode = ELanguageMode::Japanese;
 
 private:
 	// ステージBGM
@@ -146,10 +156,6 @@ public:
 	
 	//	ステージクリア時のステータス設定
 	UFUNCTION(BlueprintCallable)
-	void StageClearGameStatus(ATestMyMakeActionGameModeBase* InGameMode ,ATMMAPlayerBase* InPlayer);
-
-	// ↑のゲームステータス用(これがメインになるかも)
-	UFUNCTION(BlueprintCallable)
 	void StageClearGameStatusAndPlayerStatus(ATMMAGameStateBase* InGameStatus, ATMMAPlayerBase* InPlayer);
 
 	// ミス時のプレイヤー設定
@@ -176,16 +182,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetHighScore(int InHighScore);
-
-	// ゲームモード関連(必要？)
-	UFUNCTION(BlueprintPure)
-	ATestMyMakeActionGameModeBase* GetGameMode()
-	{
-		return GameMode;
-	}
-
-	UFUNCTION(BlueprintCallable)
-	void SetGameMode(ATestMyMakeActionGameModeBase* InGameMode);
 
 	// 残機関連
 	UFUNCTION(BlueprintPure)

@@ -41,5 +41,4 @@ private:
 	TSubclassOf<ABulletBase> SwordClass;
 	
 	FTimerHandle Handle;
-
 };

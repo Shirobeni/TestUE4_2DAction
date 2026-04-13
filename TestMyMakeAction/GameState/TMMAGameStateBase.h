@@ -11,8 +11,8 @@
 #include "TMMAGameStateBase.generated.h"
 
 #define DEFAULT_HIGH_SCORE 80000; // 初期ハイスコア
-#define DEFAULT_FIRST_EXTEND_SCORE 5000000; // 1回目のエクステンド点数
-#define DEFAULT_EVERY_EXTEND_SCORE 20000000; // エブリエクステンド点数
+#define GAME_MODE_DEFAULT_FIRST_EXTEND_SCORE 5000000; // 1回目のエクステンド点数
+#define GAME_MODE_DEFAULT_EVERY_EXTEND_SCORE 20000000; // エブリエクステンド点数
 #define ALL_CLEAR_BASE_BONUS 10000000; // ALLクリアボーナス
 #define ALL_CLEAR_LEFT_BONUS 3000000;
 

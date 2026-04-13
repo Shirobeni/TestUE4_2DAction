@@ -8,6 +8,9 @@ void ATMMABoss5Base::BeginPlay()
 	Super::BeginPlay();
 	PatternCountChangeMod = 100;
 	PatternCountEndCount = 400;
+	if (!GameMode) return;
+	GameMode->SetIsBossBattle(true);
+	GameMode->SetIsStageBossBattle(true);
 }
 
 void ATMMABoss5Base::FunctionByTimerEvent()

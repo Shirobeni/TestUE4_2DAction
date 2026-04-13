@@ -33,7 +33,7 @@ private:
 
 	float MissileFloat = 0.0f;
 
-	float MissileDelecateFloat = 1.0f;
+	float MissileDelecateFloat = 3.0f;
 
 
 };

@@ -184,7 +184,9 @@ void ATMMAEnemyBase::DamageOrDestroyEnemy(int InDamageParam, bool IsTimes)
 				FTransform SelfTransform = this->GetActorTransform();
 				SelfTransform.SetLocation(this->GetActorLocation());
 				SpawnRandomDefeatedFire(SelfTransform);
-				SpawnDestroyExplotion(this->GetActorLocation());
+				FVector EnemyLocation = this->GetActorLocation();
+				EnemyLocation.X += 150.0f;
+				SpawnDestroyExplotion(EnemyLocation);
 			}
 			// ボスキャラだった場合の処理
 			if (this->ActorHasTag("Boss") == true) {
@@ -234,7 +236,7 @@ void ATMMAEnemyBase::SpawnDestroyExplotion_Implementation(FVector InVector)
 		GetWorldTimerManager().SetTimer(_TimerHandle, this, &ATMMAEnemyBase::SpawnBossExplosionSmall, 0.05f, true);
 	}
 	else {
-		SpawnRandomDefeatedParticleAndSe(DefeatParticleObj, DefeatSoundObj, this->GetActorLocation());
+		SpawnRandomDefeatedParticleAndSe(DefeatParticleObj, DefeatSoundObj, InVector);
 	}
 
 }
@@ -561,10 +563,9 @@ void ATMMAEnemyBase::ShotEnemyBulletXVector(FVector StartVector, FVector TargetV
 
 void ATMMAEnemyBase::ShotEnemyBulletXVectorBySoft(FVector StartVector, FVector TargetVector, TSoftClassPtr<ATMMAEnemyBulletBase> SoftBulletActor, FVector InScale, AActor*& SpawnShot)
 {
-//	if (SoftBulletActor != nullptr) {
-		TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
-		ShotEnemyBulletXVector(StartVector, TargetVector, BulletActor, InScale, SpawnShot);
-//	}
+	TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
+	if (!BulletActor) return;
+	ShotEnemyBulletXVector(StartVector, TargetVector, BulletActor, InScale, SpawnShot);
 }
 
 void ATMMAEnemyBase::ShotEnemyBulletXVectorByIndex(FVector StartVector, FVector TargetVector, int BulletIndex, FVector InScale, AActor*& SpawnShot)
@@ -590,7 +591,6 @@ void ATMMAEnemyBase::ShotEnemyBulletXVectorForVector(FVector SetVector, FVector 
 	UTMMAActorLibrary::GetXVectorTransform(SetVector, StartVector, TargetVector, InScale, ShotTransform);
 	if (BulletActor != nullptr) {
 		AActor* ShotActor = GetWorld()->SpawnActor<AActor>(BulletActor, ShotTransform);
-//		if (IsValid(ShotActor)) {
 		if (UTMMAUnrealLibrary::GetIsNotNullPtrAndIsValid(ShotActor) == true) {
 			ShotActor->SetActorTransform(ShotTransform);
 			SpawnShot = ShotActor;
@@ -606,10 +606,9 @@ void ATMMAEnemyBase::ShotEnemyBulletXVectorForVector(FVector SetVector, FVector 
 
 void ATMMAEnemyBase::ShotEnemyBulletXVectorForVectorBySoft(FVector SetVector, FVector StartVector, FVector TargetVector, TSoftClassPtr<ATMMAEnemyBulletBase> SoftBulletActor, FVector InScale, AActor*& SpawnShot)
 {
-//	if (SoftBulletActor != nullptr) {
-		TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
-		ShotEnemyBulletAimForVerctor(SetVector, StartVector, TargetVector, BulletActor, InScale, SpawnShot);
-//	}
+	TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
+	if (!BulletActor) return;
+	ShotEnemyBulletAimForVerctor(SetVector, StartVector, TargetVector, BulletActor, InScale, SpawnShot);
 }
 
 void ATMMAEnemyBase::ShotEnemyBulletXVectorForVectorByIndex(FVector SetVector, FVector StartVector, FVector TargetVector, int BulletIndex, FVector InScale, AActor*& SpawnShot)
@@ -655,10 +654,9 @@ void ATMMAEnemyBase::ShotEnemyBulletXVectorByCombine(FVector StartVector, FVecto
 
 void ATMMAEnemyBase::ShotEnemyBulletXVectorByCombineBySoft(FVector StartVector, FVector TargetVector, TSoftClassPtr<ATMMAEnemyBulletBase> SoftBulletActor, FVector InScale, FRotator AddRotate, AActor*& SpawnShot)
 {
-//	if (SoftBulletActor != nullptr) {
-		TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
-		ShotEnemyBulletXVectorByCombine(StartVector, TargetVector, BulletActor, InScale, AddRotate, SpawnShot);
-//	}
+	TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
+	if (!BulletActor) return;
+	ShotEnemyBulletXVectorByCombine(StartVector, TargetVector, BulletActor, InScale, AddRotate, SpawnShot);
 }
 
 void ATMMAEnemyBase::ShotEnemyBulletXVectorByCombineByIndex(FVector StartVector, FVector TargetVector, int BulletIndex, FVector InScale, FRotator AddRotate, AActor*& SpawnShot)
@@ -686,7 +684,6 @@ void ATMMAEnemyBase::ShotEnemyBulletXVectorForVectorByCombine(FVector SetVector,
 	UTMMAActorLibrary::GetXVectorTransformByCombine(SetVector, StartVector, TargetVector, InScale, AddRotate, ShotTransform);
 	if (BulletActor != nullptr) {
 		AActor* ShotActor = GetWorld()->SpawnActor<AActor>(BulletActor, ShotTransform);
-//		if (IsValid(ShotActor)) {
 		if (UTMMAUnrealLibrary::GetIsNotNullPtrAndIsValid(ShotActor) == true) {
 			ShotActor->SetActorTransform(ShotTransform);
 			SpawnShot = ShotActor;
@@ -702,10 +699,9 @@ void ATMMAEnemyBase::ShotEnemyBulletXVectorForVectorByCombine(FVector SetVector,
 
 void ATMMAEnemyBase::ShotEnemyBulletXVectorForVectorByCombineBySoft(FVector SetVector, FVector StartVector, FVector TargetVector, TSoftClassPtr<ATMMAEnemyBulletBase> SoftBulletActor, FVector InScale, FRotator AddRotate, AActor*& SpawnShot)
 {
-//	if (SoftBulletActor != nullptr) {
-		TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
-		ShotEnemyBulletXVectorForVectorByCombine(SetVector, StartVector, TargetVector, BulletActor, InScale, AddRotate, SpawnShot);
-//	}
+	TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
+	if (!BulletActor) return;
+	ShotEnemyBulletXVectorForVectorByCombine(SetVector, StartVector, TargetVector, BulletActor, InScale, AddRotate, SpawnShot);
 }
 
 void ATMMAEnemyBase::ShotEnemyBulletXVectorForVectorByCombineByIndex(FVector SetVector, FVector StartVector, FVector TargetVector, int BulletIndex, FVector InScale, FRotator AddRotate, AActor*& SpawnShot)
@@ -719,10 +715,9 @@ void ATMMAEnemyBase::ShotEnemyBulletXVectorForVectorByCombineByIndex(FVector Set
 
 void ATMMAEnemyBase::ShotEnemyWayBulletAimBySoft(FVector SetVector, FVector TargetVector, FVector InScale, int CombineIndex, float CombineAngle, TSoftClassPtr<ATMMAEnemyBulletBase> SoftBulletActor)
 {
-//	if (SoftBulletActor != nullptr) {
-		TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
-		ShotEnemyWayBulletAim(SetVector, TargetVector, InScale, CombineIndex, CombineAngle, BulletActor);
-//	}
+	TSubclassOf<ATMMAEnemyBulletBase> BulletActor = SoftBulletActor.LoadSynchronous();
+	if (!BulletActor) return;
+	ShotEnemyWayBulletAim(SetVector, TargetVector, InScale, CombineIndex, CombineAngle, BulletActor);
 }
 
 
@@ -830,23 +825,22 @@ void ATMMAEnemyBase::SpawnDefeatedPerticleAndSe(UParticleSystem* InParticle, USo
 
 void ATMMAEnemyBase::SpawnRandomDefeatedParticleAndSe(UParticleSystem* InParticle, USoundBase* InSe, FVector InVector)
 {
-	int RandomInt = FMath::RandRange(0,2);
+	int RandomInt = FMath::RandRange(0,6);
 	FVector ParticleVector = FVector(0.0, 0.0, 0.0);
-	InVector.X += 100.0;
 	switch (RandomInt) {
 		default:
-		case 0:
 			ATMMAEnemyBase::SpawnDefeatedPerticleAndSe(InParticle, InSe, InVector);
 			break;
-		case 1:
+		case 2:
+		case 4:
 			for (int i = 0; i < 7; i++) {
 				ATMMAEnemyBase::SpawnDefeatedPerticleAndSe(InParticle, InSe, (InVector + ParticleVector));
-				ParticleVector += FVector(0.0, 50.0, 20.0);
+				ParticleVector += FVector(10.0f, 100.0f, 30.0f);
 			}
 			break;
-		case 2:
+		case 3:
 			for (int i = 0; i < 7; i++) {
-				float RandomFloat = FMath::FRandRange(-2, 2);
+				float RandomFloat = FMath::FRandRange(-4, 4);
 				ATMMAEnemyBase::SpawnDefeatedPerticleAndSe(InParticle, InSe,  (InVector * RandomFloat));
 			}
 			break;
@@ -882,15 +876,11 @@ const FVector ATMMAEnemyBase::GetDistanceAtPlayer()
 {
 	FVector EnemyVector = this->GetActorLocation();
 	FVector PlayerVector = FVector(0.0, 0.0, 0.0);
-	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0);
-//	if (PlayerActor != nullptr) {
-//		if (IsValid(PlayerActor) == true) {
-//			PlayerVector = UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0)->GetActorLocation();
-//		}
+	UTMMAActorLibrary::GetPlayerLocation(PlayerVector);
+//	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0);
+//	if (UTMMAUnrealLibrary::GetIsNotNullPtrAndIsValid(PlayerActor) == true) {
+//		PlayerVector = UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0)->GetActorLocation();
 //	}
-	if (UTMMAUnrealLibrary::GetIsNotNullPtrAndIsValid(PlayerActor) == true) {
-		PlayerVector = UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0)->GetActorLocation();
-	}
 	return EnemyVector - PlayerVector;
 }
 
@@ -899,13 +889,6 @@ const bool ATMMAEnemyBase::GetInDistanceAtPlayerX(float PlusDistance, float Minu
 	bool ReturnBool = false;
 	// クラッシュ防止のチェック
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0);
-/*
-	if (PlayerActor != nullptr) {
-		if (IsValid(PlayerActor) == true) {
-			ReturnBool = UTMMAActorLibrary::GetIsInDistanceX(this, PlayerActor, PlusDistance, MinusDistance);
-		}
-	}
-*/
 	if (UTMMAUnrealLibrary::GetIsNotNullPtrAndIsValid(PlayerActor) == true) {
 		ReturnBool = UTMMAActorLibrary::GetIsInDistanceX(this, PlayerActor, PlusDistance, MinusDistance);
 	}
@@ -916,13 +899,6 @@ const bool ATMMAEnemyBase::GetInDistanceAtPlayerY(float PlusDistance, float Minu
 {
 	bool ReturnBool = false;
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0);
-	/*
-		if (PlayerActor != nullptr) {
-			if (IsValid(PlayerActor) == true) {
-				ReturnBool = UTMMAActorLibrary::GetIsInDistanceY(this, PlayerActor, PlusDistance, MinusDistance);
-			}
-		}
-	*/
 	if (UTMMAUnrealLibrary::GetIsNotNullPtrAndIsValid(PlayerActor) == true) {
 		ReturnBool = UTMMAActorLibrary::GetIsInDistanceY(this, PlayerActor, PlusDistance, MinusDistance);
 	}
@@ -933,13 +909,6 @@ const bool ATMMAEnemyBase::GetInDistanceAtPlayerZ(float PlusDistance, float Minu
 {
 	bool ReturnBool = false;
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0);
-	/*
-		if (PlayerActor != nullptr) {
-			if (IsValid(PlayerActor) == true) {
-				ReturnBool = UTMMAActorLibrary::GetIsInDistanceY(this, PlayerActor, PlusDistance, MinusDistance);
-			}
-		}
-	*/
 	if (UTMMAUnrealLibrary::GetIsNotNullPtrAndIsValid(PlayerActor) == true) {
 		ReturnBool = UTMMAActorLibrary::GetIsInDistanceZ(this, PlayerActor, PlusDistance, MinusDistance);
 	}

@@ -3,24 +3,23 @@
 
 #include "TMMAGameStateBase.h"
 #include "TestMyMakeAction/TMMAPlayerBase.h"
+#include "TestMyMakeAction/Controller/TMMAPlayerController.h"
 #include "TestMyMakeAction/TestMyMakeActionGameModeBase.h"
-#include "TestMyMakeAction/TMMAMainGameWidgetBase.h"
+#include "TestMyMakeAction/TMMAMaingameWidgetBase.h"
 
 // 面スタート時にインスタンス等からステータス引き継ぎ
 void ATMMAGameStateBase::TakeOverStatusToStage(ATMMAPlayerBase* InPlayerActor, ECurrentStageEnum InCurrentStage)
 {
 	if (MainGameInstance != nullptr) {
-		// TODO::ここら辺の処理はプレイヤーステートに移行するので、廃止予定
-		P1Score = MainGameInstance->Get1PScore();
-		P1Left = MainGameInstance->GetP1Left();
-		UE_LOG(LogTemp, Log, TEXT("P1Left:%d"), MainGameInstance->GetP1Left());
-		// -----------------------------------------------------------------
-
+		// プレイヤーステート側の更新
+		P1PlayerState->TakeOverPlayerStatusToStage(MainGameInstance);
+		/*
 		P1PlayerState->SetScore(MainGameInstance->Get1PScore());
 		P1PlayerState->SetLeft(MainGameInstance->GetP1Left());
 		P1NextExtendScore = MainGameInstance->GetP1NextExtendScore();
 		UE_LOG(LogTemp, Log, TEXT("P1NextExtendScore:%d"), MainGameInstance->GetP1NextExtendScore());
 		P1ExtendCount = MainGameInstance->P1ExtendCount;
+		*/
 		CurrentStage = InCurrentStage;
 		SetCurrentStageNumByEnum();
 		MainGameInstance->SetCurrentStage(CurrentStageNum);
@@ -30,10 +29,10 @@ void ATMMAGameStateBase::TakeOverStatusToStage(ATMMAPlayerBase* InPlayerActor, E
 	}
 	SetTimeLockFlag(false);
 	DecreaseTimeFactor = 1.0f; // ステージ跨ぐので、タイマー減少倍率はリセットする.
-//	if (MainGameMode != nullptr) {
-//		MainGameMode->GetMainGameWidget()->UpdateLeft(P1Left);
-//	}
-
+	// ウィジェット側の更新
+	if (!P1PlayerState->GetMainPlayerController()->GetMainGameWidget()) return;
+	P1PlayerState->GetMainPlayerController()->GetMainGameWidget()->SetStageAndStageTitleText(CurrentStageNum, MainGameInstance->BuildMode);
+	P1PlayerState->GetMainPlayerController()->GetMainGameWidget()->UpdateLeft(P1PlayerState->GetLeft());
 }
 
 //　クリア時の処理
@@ -48,14 +47,16 @@ void ATMMAGameStateBase::SetStateContinue()
 {
 	if (MainGameInstance != nullptr) {
 		MainGameInstance->ContinueGameStatus();
-		P1PlayerState->SetScore(MainGameInstance->Get1PScore());
-		P1PlayerState->SetLeft(MainGameInstance->GetP1Left());
+		P1PlayerState->SetPlayerStateByContinue(MainGameInstance);
+		// TODO:: プレイヤーステート側に移行予定
+//		P1PlayerState->SetScore(MainGameInstance->Get1PScore());
+//		P1PlayerState->SetLeft(MainGameInstance->GetP1Left());
 // TODO:: プレイヤーステート側に移行予定
-		P1Score = MainGameInstance->Get1PScore();
+//		P1Score = MainGameInstance->Get1PScore();
 //		AddP1Score(0); //TODO::いらんかも
-		P1Left = MainGameInstance->GetP1Left();
+//		P1Left = MainGameInstance->GetP1Left();
 // -------------------------------------
-		P1NextExtendScore = DEFAULT_FIRST_EXTEND_SCORE;
+//		P1NextExtendScore = DEFAULT_FIRST_EXTEND_SCORE;
 	}
 }
 
@@ -94,11 +95,13 @@ void ATMMAGameStateBase::AddP1Score(int InAddP1Score)
 {
 	if (!P1PlayerState) return;
 	P1PlayerState->AddScore(InAddP1Score);
-	P1Score += InAddP1Score; // TODO::後々廃止予定.
 	// 加算のついでにハイスコア更新とエクステンドチェックを行う.
 	UpdateHighScore();  // ハイスコア更新チェック
 	bool IsExtend = false;
-	ExtendPlayer(IsExtend); // エクステンドチェック.
+	P1PlayerState->CheckExtendPlayer(IsExtend);
+// TODO::エクステンド管理周りは、プレイヤーステートで行うので、廃止予定
+//	bool IsExtend = false;
+//	ExtendPlayer(IsExtend); // エクステンドチェック.
 }
 
 // 残り時間によるスコア加算
@@ -111,8 +114,7 @@ void ATMMAGameStateBase::AddP1ScoreByTime(int AddBaseScore, bool IsDiff, int InD
 	else {
 		AddScore = AddBaseScore * floor(LeftStageTime);
 	}
-	AddP1Score(AddScore); // TODO::プレイヤーステート以降により、廃止予定.
-	P1PlayerState->AddScore(AddScore);
+	AddP1Score(AddScore);
 }
 
 //	残機数設定
@@ -134,9 +136,7 @@ void ATMMAGameStateBase::ExtendPlayer(bool& IsExtend)
 	if (P1PlayerState) {
 		int Player1Score = P1PlayerState->GetScore();
 		if (Player1Score >= P1NextExtendScore) {
-			UE_LOG(LogTemp, Log, TEXT("NowExtend...=%d"), P1NextExtendScore);
-			UE_LOG(LogTemp, Log, TEXT("Player1Score to ExtendTiming...=%d"), Player1Score);
-			P1Left++;
+			P1PlayerState->ChangeLeft(true);
 			P1ExtendCount++;
 			int NewNextExtendScore = P1ExtendCount * DEFAULT_EVERY_EXTEND_SCORE;
 			SetNextExtendScore(NewNextExtendScore);

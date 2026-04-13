@@ -58,6 +58,8 @@ private:
 
 	float AttackingTime = 0.0f;
 
+	float AccelerationValue = 0.0f;
+
 	FTimerHandle TimerHandle;
 
 	bool IsTransformDoOnceFlag = false;

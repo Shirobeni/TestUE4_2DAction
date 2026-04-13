@@ -17,3 +17,11 @@ void ATMMAPlayerController::SetControllPawn(APawn* InControllPawn)
 {
 	ControllPawn = InControllPawn;
 }
+
+void ATMMAPlayerController::CreateMainGameWidget()
+{
+	TSubclassOf<UTMMAMaingameWidgetBase> MainGameWidgetClass = SoftMainGameWidgeClass.LoadSynchronous();
+	if (!MainGameWidgetClass) return;
+	MainGameWidget = CreateWidget<UTMMAMaingameWidgetBase>(GetWorld(), MainGameWidgetClass);
+	MainGameWidget->AddToViewport();
+}

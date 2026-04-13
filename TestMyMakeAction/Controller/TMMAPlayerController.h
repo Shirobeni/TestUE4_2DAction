@@ -7,6 +7,7 @@
 #include "TestMyMakeAction/TMMAPlayerInterfaceBase.h"
 #include "TestMyMakeAction/TMMAPlayerBase.h"
 #include "TestMyMakeAction/TMMAWidgetControllPawn.h"
+#include "TestMyMakeAction/TMMAMaingameWidgetBase.h"
 #include "TMMAPlayerController.generated.h"
 
 /**
@@ -38,9 +39,21 @@ public:
 		return ControllPawn;
 	}
 
+	void CreateMainGameWidget();
+
+	UTMMAMaingameWidgetBase* GetMainGameWidget() const
+	{
+		return MainGameWidget;
+	}
+
+protected:
+	UPROPERTY(EditAnywhere)
+	TSoftClassPtr<UTMMAMaingameWidgetBase> SoftMainGameWidgeClass;
+
 protected:
 	ATMMAPlayerBase* ControllPlayer;
 
 	APawn* ControllPawn;
 
+	UTMMAMaingameWidgetBase* MainGameWidget;
 };

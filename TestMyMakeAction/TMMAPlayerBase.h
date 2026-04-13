@@ -35,6 +35,14 @@ enum class EPlayerMode : uint8
 	Shooting UMETA(DisplayName = "Homing"),
 };
 
+UENUM(BlueprintType)
+enum class EPlayerAnimType : uint8
+{
+	Shot UMETA(DisplayName = "Shot"),
+	Sword UMETA(DisplayName = "Sword"),
+	Death UMETA(DisplayName = "Death")
+};
+
 
 UCLASS()
 class TESTMYMAKEACTION_API ATMMAPlayerBase : public ACharacter, public IPlayerInterface
@@ -77,6 +85,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetIsPussingShotButton(bool InIsPussingShotButton);
 
+	UFUNCTION(BlueprintPure)
+	const bool GetIsPussingShotButton() const
+	{
+		return IsPussingShotButton;
+	}
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -387,6 +400,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChangeShotForDebug();
 
+	// アニメーション関連
+	void SetAnimMontageListBySoft();
+
+	void PlayAnimMontageByAnimType(EPlayerAnimType InAnimType, float InLateTime);
+
 protected:
 	ATMMAPlayerCameraBase* PlayerCamera;
 
@@ -515,4 +533,12 @@ public:
 	ATMMAGameStateBase* MainGameState;
 
 	bool IsAbleControll = false;
+
+	// アニメーション関連
+	UPROPERTY(EditAnyWhere)
+	TMap<EPlayerAnimType, TSoftObjectPtr<UAnimMontage>> SoftAnimMontageList;
+
+
+protected:
+	TMap<EPlayerAnimType, UAnimMontage*> AnimMontageList;
 };

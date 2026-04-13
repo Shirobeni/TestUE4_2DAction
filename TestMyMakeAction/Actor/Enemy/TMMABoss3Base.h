@@ -16,20 +16,13 @@ class TESTMYMAKEACTION_API ATMMABoss3Base : public ATMMAEnemyBase
 	GENERATED_BODY()
 	
 public:
+	ATMMABoss3Base();
+
 	virtual void BeginPlay() override;
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void FunctionByTimerEvent() override;
 	
-	UFUNCTION(BlueprintCallable)
-	void SetLanceComponent(USceneComponent* InLanceComponent);
-	
-	UFUNCTION(BlueprintCallable)
-	void SetSceneLanceComp(USceneComponent* InSceneLanceComp);
-		
-	UFUNCTION(BlueprintCallable)
-	void SetBaseSceneComponent(USceneComponent* InBaseSceneComponent);
-
 	void BossAttack();
 	
 	void LanceAngleShot();
@@ -43,15 +36,20 @@ public:
 	void SpreadShot();
 
 	void SpredShotByPt2();
-private:
-	int LanceTimeCount = 0;
-	
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* BaseSceneComponent;
 
-	USceneComponent* LanceComponent;
-	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UStaticMeshComponent* LanceComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* SceneLanceComp;
-	
+
+private:
+	int LanceTimeCount = 0;
+		
 	FVector InVector;
 	
 	bool TransformChangeOnceFlag = false;

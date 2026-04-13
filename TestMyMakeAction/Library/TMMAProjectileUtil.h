@@ -15,6 +15,7 @@ class TESTMYMAKEACTION_API UTMMAProjectileUtil : public UBlueprintFunctionLibrar
 {
 	GENERATED_BODY()
 
+public:
 	UFUNCTION(BlueprintCallable)
 	static void SetInitializeAndMaxSpeed(UProjectileMovementComponent* InProjectileComp, float InInitializeSpeed, bool IsChangeInitSpd, float InMaxSpeed, bool IsChangeMaxSpeed);
 

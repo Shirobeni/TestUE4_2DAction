@@ -32,6 +32,7 @@ void ATMMAPlayerBase::BeginPlay()
 	if (UTMMAGameInstanceBase* MainGameInstance = Cast<UTMMAGameInstanceBase>(UGameplayStatics::GetGameInstance(GetWorld()))) {
 		TakeOverPlayerStatusByInstance(MainGameInstance);
 	}
+	SetAnimMontageListBySoft(); // アニメーション設定
 	if (ATestMyMakeActionGameModeBase* CastedMainGameMode = Cast<ATestMyMakeActionGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))) {
 		MainGameMode = CastedMainGameMode;
 		SetMissileMode();
@@ -397,6 +398,8 @@ void ATMMAPlayerBase::DamageAndMissCheck(int DamageLife, UCharacterMovementCompo
 			IsAbleControll = false;
 			// ミスサウンドとパーティクル生成
 			UTMMAActorLibrary::SpawnSeAndParticle(this, DefeatedParticle, DefeatedSound, this->GetActorLocation(), FVector(1.0, 1.0, 1.0));
+			// アニメーション再生
+			PlayAnimMontageByAnimType(EPlayerAnimType::Death, 1.0f);
 			// 無敵状態にする
 			IsInvinsible = true;
 			// ミス処理を実行.
@@ -655,6 +658,23 @@ void ATMMAPlayerBase::AddSwordWaitTime()
 			SwordAttackSwitch = false;
 		}
 	}
+}
+
+void ATMMAPlayerBase::SetAnimMontageListBySoft()
+{
+	for (TPair<EPlayerAnimType, TSoftObjectPtr<UAnimMontage>> SoftAnimMontagePair : SoftAnimMontageList) {
+		// Key:アニメーションタイプの列挙型 Value : AnimMontageクラスのソフト参照
+		UAnimMontage* AnimMontage = SoftAnimMontagePair.Value.LoadSynchronous();
+		if (!AnimMontage) continue;
+		AnimMontageList.Add(SoftAnimMontagePair.Key, AnimMontage);
+	}
+}
+
+void ATMMAPlayerBase::PlayAnimMontageByAnimType(EPlayerAnimType InAnimType, float InLateTime)
+{
+	UAnimMontage* TargetAnimMontage = AnimMontageList[InAnimType];
+	if (!TargetAnimMontage) return;
+	PlayAnimMontage(TargetAnimMontage, InLateTime);
 }
 
 /*---------------------------

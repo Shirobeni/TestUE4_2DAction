@@ -10,6 +10,8 @@
 void ATMMABoss6Base::BeginPlay()
 {
 	Super::BeginPlay();
+	PatternCountChangeMod = 0;
+	// 専用AIコントローラークラスをキャストして、連携させる.
 	if (AAIController* AIController = Cast<AAIController>(Controller)) {
 		if (ATMMABoss6AiBase* CastedBoss6AI = Cast<ATMMABoss6AiBase>(AIController)) {
 			Boss6AI = CastedBoss6AI;
@@ -22,9 +24,7 @@ void ATMMABoss6Base::FunctionByTimerEvent()
 {
 	if ((!GameMode->GetIsBossBattle()) || IsDefeated) return;
 	PatternType = Boss6AI->GetDestinationIndex();
-	if (Boss6AI->GetIsArrivedPoint()) {
-		BossAttack();
-	}
+	BossAttack();
 	if (Hp < 7000 && IsTransformDoOnce == false) {
 		IsTransformDoOnce = true;
 		PatternTransform = 2;
@@ -35,6 +35,9 @@ void ATMMABoss6Base::FunctionByTimerEvent()
 
 void ATMMABoss6Base::BossAttack()
 {
+	if (!Boss6AI->GetIsArrivedPoint()) return; 
+	UE_LOG(LogTemp, Warning, TEXT("TimerEventFlame=%f"), TimerEventFlame);
+	UE_LOG(LogTemp, Warning, TEXT("ShotFloat=%f"), ShotFloat);
 	switch (PatternTransform) {
 		default:
 			break;
@@ -49,7 +52,6 @@ void ATMMABoss6Base::BossAttack()
 
 void ATMMABoss6Base::ShotPatternByPt1()
 {
-	if (!Boss6AI->GetIsArrivedPoint()) return; // 移動時は行わない.
 	switch (PatternType) {
 		default:
 			break;
@@ -58,51 +60,42 @@ void ATMMABoss6Base::ShotPatternByPt1()
 			ShotDelayFunction(&ShotFloat, ShotDelayFloat, [this]() {
 				ShotRiseBulletWay();
 			});
-//			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6Base::ShotRiseBulletWay, 1.0f, false);
 			break;
 		case 1:
-			ShotDelayFloat = 0.4f;
+			ShotDelayFloat = 0.3f;
 			ShotDelayFunction(&ShotFloat, ShotDelayFloat, [this]() {
 				ShotEnemyBulletWay();
 			});
-//			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6Base::ShotEnemyBulletWay, 0.4f, false);
 			break;
 		case 2:
-			ShotDelayFloat = 1.0f;
+			ShotDelayFloat = 0.6f;
 			ShotDelayFunction(&ShotFloat, ShotDelayFloat, [this]() {
 				ShotHomingBullet();
 			});
-//			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6Base::ShotHomingBullet, 1.0f, false);
 			break;
 		case 3:
 			ShotDelayFloat = 0.2f;
 			ShotDelayFunction(&ShotFloat, ShotDelayFloat, [this]() {
 				ShotEnemyDestroyBullet();
 			});
-//			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6Base::ShotEnemyDestroyBullet, 0.2f, false);
 			break;
 	}
 }
 
 void ATMMABoss6Base::ShotPatternByPt2()
 {
-	if (!Boss6AI->GetIsArrivedPoint()) return; // 移動時は行わない.
 	switch (PatternType) {
 		default:
 			break;
 		case 0:
-			ShotDelayFloat = 0.2f;
+			ShotDelayFloat = 0.1f;
 			ShotDelayFunction(&ShotFloat, ShotDelayFloat, [this]() {
 				ShotDestroyableMissile();
 			});
-//			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6Base::ShotDestroyableMissile, 0.2f, false);
 			break;
 		case 1:
 			ShotDelayFloat = 0.2f;
-			ShotDelayFunction(&ShotFloat, ShotDelayFloat, [this]() {
-				ShotWinderWay();
-			});
-//			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATMMABoss6Base::ShotWinderWay, 0.2f, false);
+			ShotWinderWay();
 			break;
 	}
 
@@ -114,7 +107,7 @@ void ATMMABoss6Base::ShotEnemyBulletWay()
 	FVector PlayerVector;
 	UTMMAActorLibrary::GetPlayerLocation(PlayerVector);
 	FVector ScaleVector = FVector(0.5f, 0.3f, 0.3f);
-	ShotEnemyWayBulletAimByIndex(SetVector, PlayerVector, ScaleVector, 3, 45.0f, 0);
+	ShotEnemyWayBulletAimByIndex(SetVector, PlayerVector, ScaleVector, 3, 30.0f, 0);
 }
 
 void ATMMABoss6Base::ShotHomingBullet()
@@ -131,7 +124,7 @@ void ATMMABoss6Base::ShotRiseBulletWay()
 {
 	FVector SetVector = FVector(0.0f, 0.0f, 0.0f);
 	FVector ScaleVector = FVector(0.5f, 0.3f, 0.3f);
-	ShotEnemyWayBulletAimByIndex(SetVector, GetActorLocation(), ScaleVector, 3, 120.0f, 2);
+	ShotEnemyWayBulletAimByIndex(SetVector, GetActorLocation(), ScaleVector, 3, 90.0f, 2);
 }
 
 void ATMMABoss6Base::ShotEnemyDestroyBullet()
@@ -140,7 +133,7 @@ void ATMMABoss6Base::ShotEnemyDestroyBullet()
 	FVector PlayerVector;
 	UTMMAActorLibrary::GetPlayerLocation(PlayerVector);
 	FVector ScaleVector = FVector(0.5f, 0.3f, 0.3f);
-	ShotEnemyWayBulletAimByIndex(SetVector, PlayerVector, ScaleVector, 3, 120.0f, 3);
+	ShotEnemyWayBulletAimByIndex(SetVector, PlayerVector, ScaleVector, 3, 15.0f, 3);
 }
 
 void ATMMABoss6Base::ShotDestroyableMissile()

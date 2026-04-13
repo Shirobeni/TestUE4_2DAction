@@ -6,7 +6,6 @@
 #include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "TMMAGameInstanceBase.h"
-#include "TMMAMaingameWidgetBase.h"
 #include "ContinueWidget.h"
 #include "TMMAGameOverWidget.h"
 #include "TMMAPlayerBase.h"
@@ -17,6 +16,8 @@
 #include "TestMyMakeActionGameModeBase.generated.h"
 
 #define FIX_X_VECTOR_FOR_PLAYER -69.0;
+
+class UTMMAMaingameWidget;
 
 UENUM(BlueprintType)
 enum class EPlayerMissType : uint8
@@ -84,10 +85,6 @@ public:
 	//複数マルチ関連
 	// ステージ開始時の設定
 	void InitializeStage(ECurrentStageEnum InCurrentStageEnum);
-
-	// TODO::これはいずれ廃止になるかも...
-	UFUNCTION(BlueprintCallable)
-	void InitializeStageLevel(ECurrentStage InCurrentStage, UTMMAGameInstanceBase* InGameInstance);
 	
 	//ステージクリア
 	UFUNCTION(BlueprintCallable)
@@ -101,19 +98,6 @@ public:
 	void ExecuteOpenNextLevel();
 
 	void OpenNextLevel();
-
-
-	// クリア時のステータス引継ぎ
-	UFUNCTION(BlueprintCallable)
-	void TakeOverStatusToStage(UTMMAGameInstanceBase* InGameInstance, ATMMAPlayerBase* InPlayerActor, ECurrentStage InCurrentStage);
-
-	// スコア加算とハイスコア、エクステンドチェック
-	UFUNCTION(BlueprintCallable)
-	void AddScoreAndCheckHiScAndExtend(int InScore);
-
-	// ↑にタイムによる加算も追加
-	UFUNCTION(BlueprintCallable)
-	void AddScoreByTimeAndCheckHiScAndExtend(int InBaseScore, bool IsDiff, int InDiffParam);
 
 	// ALLクリア時の残機、残バーストボーナス加算
 	// TODO::処理面含めて後々実装予定
@@ -153,9 +137,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SequenceAfterMiss();
 
-	// コンティニュー関連
-//	UFUNCTION(BlueprintCallable)
-//	void ViewContinue()
 	UFUNCTION(BlueprintCallable)
 	void Continue();
 
@@ -191,81 +172,8 @@ public:
 		return IsLockTimer;
 	}
 
-	//スコア関係
-	UFUNCTION(BlueprintCallable)
-	void SetP1Score(int InP1Score);
 
-	UFUNCTION(BlueprintCallable)
-	void AddP1Score(int AddScore);
-
-	UFUNCTION(BlueprintCallable)
-	void AddP1ScoreAndText(int AddScore);
-
-	UFUNCTION(BlueprintCallable)
-	void AddP1ScoreAndTextByTime(int AddBaseScore, bool IsDiff, int InDiffParam);
-
-
-	UFUNCTION(BlueprintPure)
-	int GetP1Score() {
-		return Player1Score;
-	}
-
-	UFUNCTION(BlueprintCallable)
-	void InitHighScore();
-
-	UFUNCTION(BlueprintCallable)
-	void UpdateHighScore();
-
-	UFUNCTION(BlueprintCallable)
-	void UpdateHighScoreAndText();
-
-	UFUNCTION(BlueprintPure)
-	int GetHighScore() {
-		return HighScore;
-	}
-
-	UFUNCTION(BlueprintPure)
-	bool GetIsUpdateHighScore() {
-		if (Player1Score > HighScore) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	// プレイヤー数関係
-	UFUNCTION(BlueprintCallable)
-	void UpdatePlayer1Left(int AddP1Left);
-
-	UFUNCTION(BlueprintCallable)
-	void CheckAndUpdatePlayer1LeftAndIcon();
-
-	UFUNCTION(BlueprintPure)
-	int GetPlayer1Left() {
-		return Player1Left;
-	}
-
-	UFUNCTION(BlueprintCallable)
-	void SetP1ExtendCount(int InP1ExtendCount);
-
-	UFUNCTION(BlueprintPure)
-	int GetP1ExtendCount() {
-		return P1ExtendCount;
-	}
-
-	UFUNCTION(BlueprintCallable)
-	void SetP1NextExtendScore(int InExtendScore);
-
-	UFUNCTION(BlueprintPure)
-	const int GetP1NextExtendScore() const
-	{
-		return P1NextExtendScore;
-	}
 		
-	UFUNCTION(BlueprintCallable)
-	void ExtendPlayer1(int InScore, bool& IsExtend);
-
 	// ゲームランク関係
 	UFUNCTION(BlueprintCallable)
 	void InitializeGameRank();
@@ -461,7 +369,6 @@ public:
 	}
 
 
-
 	// ナビゲーション関連
 	UFUNCTION(BlueprintCallable)
 	void SetNavigationDirect(ENavigationDirect InNavigationDirect);
@@ -476,7 +383,7 @@ public:
 	void SetIsDirectLeftSide(bool InIsDirectLeftSide);
 
 	UFUNCTION(BlueprintPure)
-		const bool GetIsDirectLeftSide() const
+	const bool GetIsDirectLeftSide() const
 	{
 		return IsDirectLeftSide;
 	}
@@ -506,10 +413,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetContinueWidgetAndControllPawn(UContinueWidget* InContinueWidget, ATMMAWidgetControllPawn* InContinueControllPawn);
-
-// TODO::廃止予定
-//	UFUNCTION(BlueprintCallable)
-//	void TransferContinueMode(APlayerController* PlayerController, TSubclassOf<ATMMAWidgetControllPawn> InControllPawn);
 
 	// ゲームオーバー関連
 	UFUNCTION(BlueprintCallable)
@@ -653,9 +556,6 @@ public:
 		// Object
 		UTMMAMaingameWidgetBase* MainGameWidget;
 
-		// 進行方向を左側に出すかのフラグ
-		bool IsDirectLeftSide = false;
-
 	// コンティニュー用ウィジェット
 		// サブクラス 
 		UPROPERTY(EditDefaultsOnly)
@@ -676,6 +576,10 @@ public:
 
 		ATMMAWidgetControllPawn* WidgetControllPawn;
 	/**********************************************************/
+
+protected:
+	// 進行方向を左側に出すかのフラグ
+	bool IsDirectLeftSide = false;
 
 
 private:
